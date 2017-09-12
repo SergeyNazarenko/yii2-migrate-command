@@ -695,7 +695,10 @@ class MigrateController extends Controller
     {
         if ($this->db->schema->getTableSchema($this->migrationTable, true) === null) {
             $this->createMigrationHistoryTable();
+        } elseif (!isset($this->db->schema->getTableSchema($this->migrationTable, true)->columns['alias'])) {
+            $this->addAliasColumnToMigrationTable();
         }
+        
         $query = new Query;
         if ($this->disableLookup === true) {
             $query->where(['alias' => $this->migrationPath]);
@@ -739,6 +742,11 @@ class MigrateController extends Controller
             ]
         )->execute();
         echo "done.\n";
+    }
+    
+    protected function addAliasColumnToMigrationTable()
+    {
+        $this->db->createCommand()->addColumn('migration', 'alias', 'varchar(180) NOT NULL')->execute();
     }
 
     /**
